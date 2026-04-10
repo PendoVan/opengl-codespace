@@ -1,0 +1,3 @@
+/workspaces/opengl-codespace/build/CMakeFiles/app.dir
+/workspaces/opengl-codespace/build/CMakeFiles/edit_cache.dir
+/workspaces/opengl-codespace/build/CMakeFiles/rebuild_cache.dir

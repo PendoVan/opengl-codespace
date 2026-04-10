@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/workspaces/opengl-codespace/build",
+  "command": "/usr/bin/g++ -g -o CMakeFiles/app.dir/main.cpp.o -c /workspaces/opengl-codespace/main.cpp",
+  "file": "/workspaces/opengl-codespace/main.cpp"
+}
+]
