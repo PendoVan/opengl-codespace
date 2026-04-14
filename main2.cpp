@@ -109,16 +109,18 @@ void display(void)
     glLoadIdentity();
     drawAxes(ORTHO_LEFT, ORTHO_RIGHT, ORTHO_BOTTOM, ORTHO_TOP);
 
+    const GLfloat radio = 5.0f;
+
     //drawShape(int points, GLfloat radius, GLfloat centerX, GLfloat centerY, DrawType mode, GLfloat red, GLfloat green, GLfloat blue)
     // DrawType: DRAW_FILL, DRAW_STROKE, DRAW_DASHED
     /*
-    Convertir: f(\theta) = 2 + 4 \sin(\theta) a una forma paramétrica que pueda ser dibujada en coordenadas cartesianas.
-    - $$r = 2 + 4 \sin(\theta)$$
+    Convertir: f(\theta) = 3\cos(2\theta) a una forma paramétrica que pueda ser dibujada en coordenadas cartesianas.
+    - $$r = 3\cos(2\theta)$$
         - $$x = r \cos(\theta)$$
         - $$y = r \sin(\theta)$$
-    - Sabemos que $$r = 2 + 4 \sin(\theta)$$, entonces:
-        - $$x = (2 + 4 \sin(\theta)) \cos(\theta)$$
-        - $$y = (2 + 4 \sin(\theta)) \sin(\theta)$$
+    - Sabemos que $$r = 3\cos(2\theta)$$, entonces:
+        - $$x = (3\cos(2\theta)) \cos(\theta)$$
+        - $$y = (3\cos(2\theta)) \sin(\theta)$$
     
     */
     glPushMatrix();
@@ -127,12 +129,10 @@ void display(void)
     glDisable(GL_LINE_STIPPLE);
     glBegin(GL_LINE_LOOP);
 
-    const GLfloat radio = 2.0f;
-    
     for (int i = 0; i <= 360; ++i)
     {
         GLfloat theta = static_cast<GLfloat>(i) * M_PI / 180.0f;
-        GLfloat r = radio + 4.0f * sin(theta);
+        GLfloat r = 3.0f * cos(2.0f * theta);
         
         // Converting from polar to Cartesian coordinates
         GLfloat x = r * cos(theta);
