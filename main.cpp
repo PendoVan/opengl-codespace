@@ -2,44 +2,28 @@
 #include <math.h>
 #include <GL/glut.h>
 
-// ============================================================
-//    Círculo exterior       : radio R   = 6.0
-//    Semicírculos medianos  : radio R/2 = 3.0
-//    Círculos pequeños      : radio R/6 = 1.0
-//
-//  La curva en S que divide el símbolo se construye con
-//  tres semicírculos apilados verticalmente:
-//    - Semicírculo superior (radio R/2, centro arriba): arco blanco
-//    - Semicírculo inferior (radio R/2, centro abajo) : arco negro
-//  Esto crea la curva característica en "S".
-// ============================================================
+enum DrawType { DRAW_FILL, DRAW_STROKE, DRAW_DASHED };
 
-const int   SEGMENTS    = 360;
-const float R           = 6.0f;     // radio del círculo grande
-const float R2          = R / 2.0f; // radio de los semicírculos medianos
-const float R6          = R / 6.0f; // radio de los círculos pequeños
-
-const GLfloat ORTHO_LEFT   = -10.0f;
-const GLfloat ORTHO_RIGHT  =  10.0f;
-const GLfloat ORTHO_BOTTOM = -10.0f;
-const GLfloat ORTHO_TOP    =  10.0f;
-
+const GLfloat ORTHO_LEFT   = -30.0f;
+const GLfloat ORTHO_RIGHT  =  30.0f;
+const GLfloat ORTHO_BOTTOM = -30.0f;
+const GLfloat ORTHO_TOP    =  30.0f;
 
 void init(void);
 void display(void);
-void reshape(int, int);
-
-void drawFilledCircle(float cx, float cy, float r, float red, float green, float blue);
-void drawFilledSemiCircle(float cx, float cy, float r, float angStart, float angEnd, float red, float green, float blue);
-void drawYinYang(float cx, float cy);
+void reshape(int,int);
+void computeRegularPolygonVertex(int index, int count, GLfloat radius, GLfloat centerX, GLfloat centerY, GLfloat &x, GLfloat &y);
+void configureDrawMode(DrawType mode);
+void drawShape(int points, GLfloat radius, GLfloat centerX, GLfloat centerY, DrawType mode, GLfloat red, GLfloat green, GLfloat blue);
+void drawAxes(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top);
 
 int main(int argc, char** argv)
 {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
-    glutInitWindowSize(700, 700);
-    glutInitWindowPosition(100, 100);
-    glutCreateWindow("Ejercicio 02 - Yin Yang");
+    glutInitDisplayMode(GLUT_SINGLE|GLUT_RGB);
+    glutInitWindowSize(1000,1000);
+    glutInitWindowPosition(100,100);
+    glutCreateWindow(argv[0]);
     init();
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
@@ -49,84 +33,127 @@ int main(int argc, char** argv)
 
 void init(void)
 {
-    glClearColor(0.15f, 0.15f, 0.20f, 0.0f);
+    glClearColor(0.2,0.1,0.3,0.0);
     glShadeModel(GL_FLAT);
 }
 
-void drawFilledCircle(float cx, float cy, float r, float red, float green, float blue){
-    glColor3f(red, green, blue);
-    glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(cx, cy);  // centro
-        for (int i = 0; i <= SEGMENTS; ++i){
-            float ang = 2.0f * M_PI * i / SEGMENTS;
-            glVertex2f(cx + r * cosf(ang), cy + r * sinf(ang));
-        }
-    glEnd();
-}
-
-void drawFilledSemiCircle(float cx, float cy, float r, float angStart, float angEnd, float red, float green, float blue){
-    glColor3f(red, green, blue);
-    glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(cx, cy);  // centro del sector
-        int steps = (int)(SEGMENTS * fabsf(angEnd - angStart) / (2.0f * M_PI));
-        if (steps < 2) steps = 2;
-        for (int i = 0; i <= steps; ++i){
-            float ang = angStart + (angEnd - angStart) * i / steps;
-            glVertex2f(cx + r * cosf(ang), cy + r * sinf(ang));
-        }
-    glEnd();
-}
-
-void drawYinYang(float cx, float cy)
+void computeRegularPolygonVertex(int index, int count, GLfloat radius, GLfloat centerX, GLfloat centerY, GLfloat &x, GLfloat &y)
 {
-    const float WHITE_R = 1.0f, WHITE_G = 1.0f, WHITE_B = 1.0f;
-    const float BLACK_R = 1.0f, BLACK_G = 0.64f, BLACK_B = 0.01f;
+    GLfloat ang = 2.0f * M_PI * index / count;
+    x = centerX + radius * cos(ang);
+    y = centerY + radius * sin(ang);
+}
 
-    // Mitad izquierda: negra
-    drawFilledSemiCircle(cx, cy, R, (float)M_PI / 2.0f, 3.0f * (float)M_PI / 2.0f, WHITE_R, WHITE_G, WHITE_B);
-
-    // Mitad derecha: blanca
-    drawFilledSemiCircle(cx, cy, R, -(float)M_PI / 2.0f, (float)M_PI / 2.0f, BLACK_R, BLACK_G, BLACK_B);
-
-    // Semicírculo mediano BLANCO en la zona superior
-    drawFilledSemiCircle(cx, cy + R2, R2,-(float)M_PI / 2.0f, (float)M_PI / 2.0f, WHITE_R, WHITE_G, WHITE_B);
-
-    // Semicírculo mediano NEGRO en la zona inferior
-    drawFilledSemiCircle(cx, cy - R2, R2, (float)M_PI / 2.0f, 3.0f * (float)M_PI / 2.0f, BLACK_R, BLACK_G, BLACK_B);
-
-    // Punto BLANCO centrado en la zona negra superior
-    drawFilledCircle(cx, cy + R2, R6, BLACK_R, BLACK_G, BLACK_B);
-
-    // Punto NEGRO centrado en la zona blanca inferior
-    drawFilledCircle(cx, cy - R2, R6, WHITE_R, WHITE_G, WHITE_B);
-
-    // Borde exterior NEGRO
-    glColor3f(0.0f, 0.0f, 0.0f);
+void configureDrawMode(DrawType mode)
+{
     glLineWidth(2.0f);
-    glBegin(GL_LINE_LOOP);
-    for (int i = 0; i < SEGMENTS; ++i){
-        float ang = 2.0f * M_PI * i / SEGMENTS;
-        glVertex2f(cx + R * cosf(ang), cy + R * sinf(ang));
+    if (mode == DRAW_DASHED)
+    {
+        glEnable(GL_LINE_STIPPLE);
+        glLineStipple(1, 0x00FF);
     }
+    else
+    {
+        glDisable(GL_LINE_STIPPLE);
+    }
+}
+
+void drawShape(int points, GLfloat radius, GLfloat centerX, GLfloat centerY, DrawType mode, GLfloat red, GLfloat green, GLfloat blue)
+{
+    glPushMatrix();
+    glColor3f(red, green, blue);
+    configureDrawMode(mode);
+
+    if (mode == DRAW_FILL)
+    {
+        glBegin(GL_POLYGON);
+    }
+    else
+    {
+        glBegin(GL_LINE_LOOP);
+    }
+
+    for (int i = 0; i < points; ++i)
+    {
+        GLfloat x, y;
+        computeRegularPolygonVertex(i, points, radius, centerX, centerY, x, y);
+        glVertex2f(x, y);
+    }
+
     glEnd();
+    if (mode == DRAW_DASHED)
+    {
+        glDisable(GL_LINE_STIPPLE);
+    }
+    glPopMatrix();
+}
+
+void drawAxes(GLfloat left, GLfloat right, GLfloat bottom, GLfloat top)
+{
+    glPushMatrix();
+    glLineWidth(1.0f);
+    glDisable(GL_LINE_STIPPLE);
+    glColor3f(0.0f, 0.0f, 1.0f);
+    glBegin(GL_LINES);
+    glVertex2f(left, 0.0f);
+    glVertex2f(right, 0.0f);
+    glVertex2f(0.0f, bottom);
+    glVertex2f(0.0f, top);
+    glEnd();
+    glPopMatrix();
+}
+
+void drawGear(int teeth, GLfloat innerRadius, GLfloat outerRadius, GLfloat centerX, GLfloat centerY, GLfloat red, GLfloat green, GLfloat blue)
+{
+    const GLfloat step = M_PI / teeth;
+
+    glPushMatrix();
+    glColor3f(red, green, blue);
+    glEnable(GL_LINE_LOOP);
+    glLineStipple(1, 0x00FF);
+    glLineWidth(3.0f);
+    glBegin(GL_LINE_LOOP);
+
+    for (int t = 0; t < teeth; ++t)
+    {
+        GLfloat baseAngle = 2.0f * M_PI * t / teeth;
+
+        glVertex2f(centerX + outerRadius * cos(baseAngle), centerY + outerRadius * sin(baseAngle));
+        glVertex2f(centerX + outerRadius * cos(baseAngle + step), centerY + outerRadius * sin(baseAngle + step));
+        glVertex2f(centerX + innerRadius * cos(baseAngle + step), centerY + innerRadius * sin(baseAngle + step));
+        glVertex2f(centerX + innerRadius * cos(baseAngle + 2.0f * step), centerY + innerRadius * sin(baseAngle + 2.0f * step));
+    }
+
+    glEnd();
+    glDisable(GL_LINE_LOOP);
+    glPopMatrix();
 }
 
 void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
+    //drawAxes(ORTHO_LEFT, ORTHO_RIGHT, ORTHO_BOTTOM, ORTHO_TOP);
 
-    drawYinYang(0.0f, 0.0f);   // centrado en el origen
+    //drawShape(int points, GLfloat radius, GLfloat centerX, GLfloat centerY, DrawType mode, GLfloat red, GLfloat green, GLfloat blue)
+    // DrawType: DRAW_FILL, DRAW_STROKE, DRAW_DASHED
+    /*
+    drawShape(100, 4.0f, 0.0f, 0.0f, DRAW_DASHED, 0.0f, 0.7f, 0.2f);
+    drawShape(100, 7.0f, 0.0f, 0.0f, DRAW_DASHED, 1.0f, 0.6f, 0.0f);
+    */
 
+    //-----------------------------------------------------------------
+    drawGear(12, 6.0f, 8.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f);
+    //-----------------------------------------------------------------
     glFlush();
 }
 
 void reshape(int w, int h)
 {
-    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
+    glViewport(0,0,(GLsizei)w, (GLsizei)h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    glOrtho(ORTHO_LEFT, ORTHO_RIGHT, ORTHO_BOTTOM, ORTHO_TOP, -20.0, 20.0);
+    glOrtho(ORTHO_LEFT, ORTHO_RIGHT, ORTHO_BOTTOM, ORTHO_TOP, -10.0, 10.0);
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
