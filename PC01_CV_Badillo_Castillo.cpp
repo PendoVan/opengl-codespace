@@ -3,6 +3,7 @@
     Alumno : Badillo Castillo, Edwin Piero
     Codigo : 24200150
     Fecha  : 28/04/26
+    Hora   : 12:00
  */
 
 #include <stdlib.h>
