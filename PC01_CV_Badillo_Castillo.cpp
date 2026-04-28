@@ -11,8 +11,8 @@
 
 float R = 200.0f;   // Radio de la circunferencia exterior (en pixeles)
 float r = 130.0f;   // Radio de la circunferencia interior (en pixeles)
-int   N = 64;       // Numero de vertices del engranaje: N = 8k  (k=2 → 4 dientes)
-
+int   k = 8;
+int   N = 8*k;       // Numero de vertices del engranaje: N = 8k  (k=2 → 4 dientes)
 const int WIN_W = 800;
 const int WIN_H = 600;
 
