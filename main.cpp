@@ -133,7 +133,7 @@ void display(void)
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glLoadIdentity();
-    //drawAxes(ORTHO_LEFT, ORTHO_RIGHT, ORTHO_BOTTOM, ORTHO_TOP);
+    drawAxes(ORTHO_LEFT, ORTHO_RIGHT, ORTHO_BOTTOM, ORTHO_TOP);
 
     //drawShape(int points, GLfloat radius, GLfloat centerX, GLfloat centerY, DrawType mode, GLfloat red, GLfloat green, GLfloat blue)
     // DrawType: DRAW_FILL, DRAW_STROKE, DRAW_DASHED
