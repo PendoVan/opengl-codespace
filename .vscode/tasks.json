@@ -14,7 +14,8 @@
                 "-lglfw", 
                 "-lGL", 
                 "-lGLEW",
-                "-lglut"
+                "-lglut",
+                "-lGLU"
             ],
             "options": {
                 "cwd": "${fileDirname}"
